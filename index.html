@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FinCore — Control Financiero</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810; --bg2: #0E0E1A; --bg3: #141428;
+    --card: #111120; --border: #1E1E3A;
+    --red: #FF2D55; --red-dim: rgba(255,45,85,0.15); --red-glow: rgba(255,45,85,0.4);
+    --cyan: #00F5D4; --cyan-dim: rgba(0,245,212,0.15); --cyan-glow: rgba(0,245,212,0.35);
+    --yellow: #FFD60A; --yellow-dim: rgba(255,214,10,0.15);
+    --green: #32D74B; --green-glow: rgba(50,215,75,0.35);
+    --text: #E8E8F0; --text2: #9090A8; --text3: #5A5A72;
+    --font-d: 'Rajdhani', sans-serif; --font-b: 'Inter', sans-serif; --font-m: 'JetBrains Mono', monospace;
+    --nav-h: 64px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-b); min-height: 100vh; overflow-x: hidden; }
+  button { font-family: inherit; }
+
+  .app { display: flex; flex-direction: column; min-height: 100vh; max-width: 480px; margin: 0 auto; position: relative; }
+  .screen { display: none; flex-direction: column; flex: 1; padding-bottom: calc(var(--nav-h) + 20px); overflow-y: auto; }
+  .screen.active { display: flex; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* TOP BAR & PROFILE SWITCH */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--bg); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
+  .profile-title { cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; }
+  .profile-title h2 { font-family: var(--font-d); color: var(--cyan); margin: 0; font-size: 22px; text-shadow: 0 0 10px var(--cyan-dim); }
+  .profile-title small { font-size: 12px; color: var(--text3); }
+  .btn-icon { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
+
+  /* NAV (Ajustado el tamaño de letra a 11px) */
+  .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; height: var(--nav-h); background: var(--bg2); border-top: 1px solid var(--border); display: flex; z-index: 100; justify-content: space-around; }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: none; border: none; color: var(--text3); cursor: pointer; transition: 0.2s; padding: 0 2px; }
+  .nav-btn span { font-size: 11px; font-family: var(--font-d); font-weight: 600; letter-spacing: 0.5px; }
+  .nav-btn.active { color: var(--cyan); text-shadow: 0 0 10px var(--cyan-glow); }
+
+  /* HERO CARDS */
+  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px; }
+  .hero { background: linear-gradient(135deg, var(--bg2) 0%, #0E1020 100%); border: 1px solid var(--border); border-radius: 16px; padding: 16px; position: relative; }
+  .hero.full { grid-column: span 2; }
+  .hero-lbl { font-size: 11px; color: var(--text3); font-family: var(--font-d); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .hero-val { font-family: var(--font-d); font-size: 26px; font-weight: 700; color: var(--text); }
+  .val-cyan { color: var(--cyan); text-shadow: 0 0 15px var(--cyan-dim); }
+  .val-green { color: var(--green); text-shadow: 0 0 15px var(--green-glow); }
+
+  /* SECTION TITLES */
+  .sec-title { padding: 0 16px 10px; font-family: var(--font-d); font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; display: flex; justify-content: space-between; align-items: center; }
+  
+  /* LISTS & ITEMS */
+  .list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+  .item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; padding: 12px; position: relative; overflow: hidden; }
+  .item-info { flex: 1; min-width: 0; cursor: pointer; padding-right: 10px;}
+  .item-title { font-family: var(--font-d); font-size: 16px; font-weight: 600; color: var(--text); }
+  .item-sub { font-size: 11px; color: var(--text3); font-family: var(--font-m); margin-top: 2px; }
+  .item-val { font-family: var(--font-d); font-size: 16px; font-weight: 700; white-space: nowrap; }
+  .val-pos { color: var(--cyan); } .val-neg { color: var(--red); } .val-sav { color: var(--green); }
+  .btn-del { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); border-radius: 6px; width: 32px; height: 32px; font-size: 14px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-left: 8px; }
+
+  /* FAB */
+  .fab { position: fixed; bottom: calc(var(--nav-h) + 16px); right: 20px; width: 56px; height: 56px; border-radius: 14px; background: var(--cyan); color: var(--bg); border: none; font-size: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--cyan-glow); cursor: pointer; z-index: 50; }
+
+  /* MODALS & FULLSCREEN */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 400; display: none; align-items: flex-end; justify-content: center; }
+  .overlay.active { display: flex; }
+  .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px 20px 0 0; width: 100%; max-width: 480px; padding: 20px; max-height: 85vh; overflow-y: auto; }
+  .modal-h { font-family: var(--font-d); font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+  
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; color: var(--text3); font-family: var(--font-d); margin-bottom: 6px; text-transform: uppercase; }
+  .field input, .field select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-family: var(--font-b); font-size: 15px; outline: none; }
+  .field input:focus, .field select:focus { border-color: var(--cyan); }
+  
+  .btn-primary { width: 100%; background: var(--cyan); color: var(--bg); border: none; padding: 14px; border-radius: 10px; font-family: var(--font-d); font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 10px; box-shadow: 0 0 15px var(--cyan-glow); }
+  .btn-danger { width: 100%; background: transparent; color: var(--red); border: 1px solid var(--red); padding: 14px; border-radius: 10px; font-family: var(--font-d); font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+  .btn-sec { width: 100%; background: var(--bg3); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 10px; font-family: var(--font-d); font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+
+  /* PROFILE MANAGER (FULLSCREEN) */
+  .manager-screen { position: fixed; inset: 0; background: var(--bg); z-index: 300; display: none; flex-direction: column; padding: 24px; max-width: 480px; margin: 0 auto; overflow-y: auto; }
+  .manager-screen.active { display: flex; }
+  .manager-screen h1 { font-family: var(--font-d); color: var(--cyan); font-size: 32px; margin-bottom: 5px; margin-top: 20px; }
+  .manager-screen p { color: var(--text2); margin-bottom: 20px; font-size: 14px; }
+
+  /* CHIPS & CHARTS */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .chip { background: var(--bg3); border: 1px solid var(--border); padding: 6px 12px; border-radius: 16px; font-size: 12px; font-family: var(--font-d); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .chip-del { color: var(--red); cursor: pointer; font-size: 14px; font-weight: bold; }
+  
+  .chart-row { margin-bottom: 12px; }
+  .chart-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; font-weight: 600;}
+  .chart-bar-bg { width: 100%; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+  .chart-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="modal-backup-alert">
+  <div class="modal">
+    <div class="modal-h">Copia de Seguridad</div>
+    <p style="font-size: 14px; color: var(--text2); margin-bottom: 20px;">Han pasado más de 24 horas desde tu último respaldo. Es importante guardar una copia de tus datos para evitar perderlos si se borra el historial de tu navegador.</p>
+    <button class="btn-primary" onclick="downloadBackup()">Descargar Ahora</button>
+    <button class="btn-sec" style="border:none;" onclick="closeModals()">Recordarme Luego</button>
+  </div>
+</div>
+
+<div class="manager-screen" id="screen-profile-manager">
+  <h1>Tus Perfiles</h1>
+  <p>Selecciona un entorno financiero o crea uno nuevo.</p>
+  <div id="pm-list" class="list" style="padding: 0; margin-bottom: 20px;"></div>
+  <button class="btn-primary" onclick="openCreateProfileModal()">+ Crear Nuevo Perfil</button>
+  <button class="btn-danger" id="btn-cancel-pm" style="display:none; border:none;" onclick="closeProfileManager()">Cancelar</button>
+</div>
+
+<div class="app" id="main-app" style="display:none;">
+  <header class="topbar">
+    <div class="profile-title" onclick="openProfileManager()">
+      <h2 id="top-prof-name">Perfil</h2>
+      <small>▼ Cambiar</small>
+    </div>
+    <button class="btn-icon" onclick="openModal('modal-config')">⚙️</button>
+  </header>
+
+  <main id="screen-panel" class="screen active">
+    <div class="hero-grid">
+      <div class="hero full">
+        <div class="hero-lbl">Saldo Disponible</div>
+        <div class="hero-val val-cyan" id="ui-saldo">$0</div>
+        <div style="font-size:11px; color:var(--text3); margin-top:8px;">Base + Ingresos - Gastos - Ahorros</div>
+      </div>
+      <div class="hero">
+        <div class="hero-lbl">Ahorro Total</div>
+        <div class="hero-val val-green" id="ui-ahorro" style="font-size: 20px;">$0</div>
+      </div>
+      <div class="hero" style="display:flex; align-items:center; justify-content:center;">
+        <button class="btn-sec" style="margin:0; font-size:12px; padding:10px;" onclick="switchTab('screen-savings', document.getElementById('nav-sav'))">Ver Ahorros</button>
+      </div>
+    </div>
+    <div class="sec-title">Últimos Movimientos <button class="btn-sec" style="width:auto; margin:0; padding:4px 10px; font-size:11px;" onclick="switchTab('screen-tx', document.getElementById('nav-tx'))">Ver Todo</button></div>
+    <div class="list" id="ui-recent-tx"></div>
+  </main>
+
+  <main id="screen-tx" class="screen">
+    <div class="sec-title" style="margin-top: 16px;">Filtros de Búsqueda</div>
+    <div style="padding: 0 16px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <input type="month" id="filter-month" class="btn-sec" style="margin:0; padding:10px;" onchange="renderHistory()">
+      <select id="filter-type" class="btn-sec" style="margin:0; padding:10px;" onchange="renderHistory()">
+        <option value="all">Flujo: Todos</option>
+        <option value="income">Ingresos (+)</option>
+        <option value="expense">Gastos (-)</option>
+        <option value="saving">Ahorros (Guardado)</option>
+        <option value="saving_expense">Ahorros (Gastado)</option>
+      </select>
+      <select id="filter-cat" class="btn-sec" style="margin:0; padding:10px; grid-column: span 2;" onchange="renderHistory()"></select>
+    </div>
+    <div class="list" id="ui-all-tx"></div>
+  </main>
+
+  <main id="screen-analysis" class="screen">
+    <div class="sec-title" style="margin-top: 16px;">Balance del Mes Actual</div>
+    <div style="padding: 0 16px;">
+      <div class="hero" style="margin:0 0 16px 0;">
+        <div id="analysis-month-title" class="hero-lbl" style="text-align:center;">Mes</div>
+        <div id="analysis-balance" style="text-align:center; font-family:var(--font-d); font-size:24px; font-weight:700; margin-top:8px;">$0</div>
+      </div>
+      <div class="card" style="background:var(--card); padding:16px; border-radius:12px; border:1px solid var(--border); margin-bottom:16px;">
+        <div class="chart-row">
+          <div class="chart-label"><span>Ingresos</span><span id="chart-inc-val" class="val-pos">$0</span></div>
+          <div class="chart-bar-bg"><div id="chart-inc-bar" class="chart-bar-fill" style="background:var(--cyan); width:0%;"></div></div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-label"><span>Gastos</span><span id="chart-exp-val" class="val-neg">$0</span></div>
+          <div class="chart-bar-bg"><div id="chart-exp-bar" class="chart-bar-fill" style="background:var(--red); width:0%;"></div></div>
+        </div>
+        <div class="chart-row" style="margin-bottom:0;">
+          <div class="chart-label"><span>Ahorrado Neto</span><span id="chart-sav-val" class="val-sav">$0</span></div>
+          <div class="chart-bar-bg"><div id="chart-sav-bar" class="chart-bar-fill" style="background:var(--green); width:0%;"></div></div>
+        </div>
+      </div>
+      <div class="sec-title" style="padding:0; margin-bottom:10px;">Distribución de Gastos</div>
+      <div id="analysis-cats" class="list" style="padding:0;"></div>
+    </div>
+  </main>
+
+  <main id="screen-savings" class="screen">
+    <div class="hero full" style="margin: 16px; text-align:center;">
+      <div class="hero-lbl">Ahorro Acumulado</div>
+      <div class="hero-val val-green" id="ui-ahorro-tab">$0</div>
+    </div>
+    <div class="sec-title">Historial de Ahorros (Ingresos y Retiros)</div>
+    <div class="list" id="ui-savings-tx"></div>
+  </main>
+
+  <main id="screen-cats" class="screen">
+    <div class="sec-title" style="margin-top: 16px;">Gestión de Categorías</div>
+    <div style="padding: 0 16px;">
+      <div class="chips" id="ui-categories"></div>
+      <div class="field" style="display:flex; gap:8px;">
+        <input type="text" id="new-cat-name" placeholder="Nueva categoría...">
+        <button class="btn-primary" style="width: auto; margin:0;" onclick="addCategory()">Añadir</button>
+      </div>
+      <p style="font-size: 11px; color: var(--text3); margin-top: 10px;">Nota: No puedes eliminar categorías que ya hayas usado en transacciones.</p>
+    </div>
+  </main>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('screen-panel', this)"><span>PANEL</span></button>
+    <button class="nav-btn" id="nav-tx" onclick="switchTab('screen-tx', this)"><span>HISTORIAL</span></button>
+    <button class="nav-btn" onclick="switchTab('screen-analysis', this)"><span>ANÁLISIS</span></button>
+    <button class="nav-btn" id="nav-sav" onclick="switchTab('screen-savings', this)"><span>AHORROS</span></button>
+    <button class="nav-btn" onclick="switchTab('screen-cats', this)"><span>AJUSTES</span></button>
+  </nav>
+
+  <button class="fab" onclick="openAddModal()">+</button>
+</div>
+
+<div class="overlay" id="modal-create-profile">
+  <div class="modal">
+    <div class="modal-h">Nuevo Perfil</div>
+    <div class="field">
+      <label>Nombre del Perfil</label>
+      <input type="text" id="cp-name" placeholder="Ej. Casa, J REYES...">
+    </div>
+    <div class="field">
+      <label>Tipo de Entorno</label>
+      <select id="cp-type">
+        <option value="personal">Personal</option>
+        <option value="business">Empresarial</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Saldo Inicial (COP)</label>
+      <input type="number" id="cp-balance" placeholder="0" min="0">
+    </div>
+    <button class="btn-primary" onclick="createNewProfile()">Crear Perfil</button>
+    <button class="btn-danger" onclick="closeModals()">Cancelar</button>
+  </div>
+</div>
+
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-h" id="modal-add-title">Nueva Transacción</div>
+    <div class="field">
+      <label>Flujo de Dinero</label>
+      <select id="add-type">
+        <option value="expense">Gasto (-)</option>
+        <option value="income">Ingreso (+)</option>
+        <option value="saving">Ahorrar (Añadir a Ahorros)</option>
+        <option value="saving_expense">Gastar desde Ahorros (-)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Monto (Debe ser mayor a 0)</label>
+      <input type="number" id="add-amount" placeholder="0" min="0.01">
+    </div>
+    <div class="field">
+      <label>Descripción</label>
+      <input type="text" id="add-desc" placeholder="Ej. Compra...">
+    </div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="add-cat"></select>
+    </div>
+    <div class="field">
+      <label>Fecha</label>
+      <input type="date" id="add-date">
+    </div>
+    <button class="btn-primary" id="btn-save-tx" onclick="saveTransaction()">Registrar</button>
+    <button class="btn-danger" onclick="closeModals()">Cancelar</button>
+  </div>
+</div>
+
+<div class="overlay" id="modal-config">
+  <div class="modal">
+    <div class="modal-h">Ajustes Generales</div>
+    <div class="field">
+      <label>Nombre del Perfil Actual</label>
+      <input type="text" id="config-name">
+    </div>
+    <div class="field">
+      <label>Ajuste Manual de Saldo Base</label>
+      <input type="number" id="config-balance" min="0">
+    </div>
+    <button class="btn-primary" onclick="saveProfileConfig()">Guardar Cambios de Perfil</button>
+    
+    <div style="margin: 24px 0; border-top: 1px solid var(--border); padding-top: 16px;">
+      <label style="display:block; font-size:12px; color:var(--text3); font-family:var(--font-d); margin-bottom:6px;">COPIAS DE SEGURIDAD (TODA LA APP)</label>
+      <button class="btn-sec" onclick="downloadBackup()">📥 Exportar / Descargar Backup</button>
+      <button class="btn-sec" onclick="triggerImport()">📤 Importar Backup</button>
+      <input type="file" id="import-file" style="display:none;" accept=".json" onchange="handleImport(event)">
+    </div>
+
+    <button class="btn-danger" onclick="deleteCurrentProfile()">Eliminar Perfil Actual</button>
+    <button class="btn-sec" style="border:none;" onclick="closeModals()">Cerrar Ajustes</button>
+  </div>
+</div>
+
+<script>
+  const defaultCatsPersonal = ['Alimentación', 'Gastos de casa', 'Hijos', 'Gastos varios'];
+  const defaultCatsBusiness = ['Servicios Técnicos', 'Inventario', 'Publicidad', 'Ventas'];
+
+  let appData = JSON.parse(localStorage.getItem('fincore_data_v3')) || { profiles: {}, lastActiveId: null };
+  let editingTxId = null; 
+
+  const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+  function saveData() { localStorage.setItem('fincore_data_v3', JSON.stringify(appData)); }
+  function getProfile() { return appData.profiles[appData.lastActiveId]; }
+
+  window.onload = () => {
+    document.getElementById('add-date').valueAsDate = new Date();
+    const currMonth = new Date().toISOString().substring(0,7);
+    document.getElementById('filter-month').value = currMonth;
+
+    if (Object.keys(appData.profiles).length === 0 || !appData.lastActiveId || !appData.profiles[appData.lastActiveId]) {
+      openProfileManager();
+    } else {
+      selectProfile(appData.lastActiveId);
+      checkAutoBackup();
+    }
+  };
+
+  // --- BACKUP LOGIC ---
+  function checkAutoBackup() {
+    const lastBackup = localStorage.getItem('fincore_last_backup');
+    const now = Date.now();
+    if (!lastBackup || now - parseInt(lastBackup) > (24 * 60 * 60 * 1000)) {
+      document.getElementById('modal-backup-alert').classList.add('active');
+    }
+  }
+
+  function downloadBackup() {
+    const dataStr = JSON.stringify(appData);
+    const blob = new Blob([dataStr], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fincore_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    localStorage.setItem('fincore_last_backup', Date.now().toString());
+    closeModals();
+  }
+
+  function triggerImport() { document.getElementById('import-file').click(); }
+  
+  function handleImport(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if(data.profiles) {
+          appData = data;
+          saveData();
+          alert('Backup restaurado con éxito');
+          location.reload();
+        } else { alert('Archivo inválido. Asegúrate de que sea un backup de FinCore.'); }
+      } catch(err) { alert('Error leyendo el archivo JSON.'); }
+    };
+    reader.readAsText(file);
+  }
+
+  // --- PROFILE LOGIC ---
+  function openProfileManager() {
+    document.getElementById('main-app').style.display = 'none';
+    const pm = document.getElementById('screen-profile-manager');
+    pm.classList.add('active');
+    document.getElementById('btn-cancel-pm').style.display = (appData.lastActiveId && appData.profiles[appData.lastActiveId]) ? 'block' : 'none';
+    renderProfileList();
+  }
+  function closeProfileManager() { document.getElementById('screen-profile-manager').classList.remove('active'); document.getElementById('main-app').style.display = 'flex'; }
+
+  function renderProfileList() {
+    const list = document.getElementById('pm-list');
+    const profiles = Object.entries(appData.profiles);
+    if (profiles.length === 0) return list.innerHTML = '<div class="item-sub" style="margin-bottom:15px;">No tienes perfiles.</div>';
+    list.innerHTML = profiles.map(([id, prof]) => `
+      <div class="item clickable" onclick="selectProfile('${id}')">
+        <div class="item-info"><div class="item-title">${prof.name}</div><div class="item-sub">${prof.type === 'personal' ? 'Personal' : 'Empresarial'}</div></div>
+        <div class="item-val" style="color:var(--text3);">▶</div>
+      </div>
+    `).join('');
+  }
+
+  function openCreateProfileModal() { document.getElementById('cp-name').value = ''; document.getElementById('cp-balance').value = ''; document.getElementById('modal-create-profile').classList.add('active'); }
+
+  function createNewProfile() {
+    const name = document.getElementById('cp-name').value.trim();
+    const type = document.getElementById('cp-type').value;
+    const balance = parseFloat(document.getElementById('cp-balance').value) || 0;
+    if (!name) return alert('Debes darle un nombre.');
+    if (balance < 0) return alert('El saldo inicial no puede ser negativo.');
+    
+    const newId = 'prof_' + Date.now();
+    appData.profiles[newId] = { name, type, baseBalance: balance, categories: type === 'personal' ? [...defaultCatsPersonal] : [...defaultCatsBusiness], transactions: [] };
+    saveData(); closeModals(); renderProfileList();
+  }
+
+  function selectProfile(id) {
+    appData.lastActiveId = id; saveData(); closeProfileManager();
+    switchTab('screen-panel', document.querySelector('.nav-btn')); renderUI();
+  }
+
+  function saveProfileConfig() {
+    const name = document.getElementById('config-name').value.trim();
+    const bal = parseFloat(document.getElementById('config-balance').value);
+    if (name) getProfile().name = name;
+    if (!isNaN(bal) && bal >= 0) getProfile().baseBalance = bal;
+    saveData(); closeModals(); renderUI();
+  }
+
+  function deleteCurrentProfile() {
+    if(confirm('ATENCIÓN: Esto borrará este perfil y sus transacciones. ¿Continuar?')) {
+      delete appData.profiles[appData.lastActiveId]; appData.lastActiveId = null; saveData(); closeModals(); openProfileManager();
+    }
+  }
+
+  // --- TRANSACTIONS LOGIC ---
+  function openAddModal() {
+    editingTxId = null;
+    document.getElementById('modal-add-title').innerText = 'Nueva Transacción';
+    document.getElementById('btn-save-tx').innerText = 'Registrar';
+    document.getElementById('add-amount').value = '';
+    document.getElementById('add-desc').value = '';
+    document.getElementById('modal-add').classList.add('active');
+  }
+
+  function openEditModal(id) {
+    const tx = getProfile().transactions.find(t => t.id === id);
+    if(!tx) return;
+    editingTxId = id;
+    document.getElementById('modal-add-title').innerText = 'Editar Transacción';
+    document.getElementById('btn-save-tx').innerText = 'Actualizar Cambios';
+    document.getElementById('add-type').value = tx.type;
+    document.getElementById('add-amount').value = tx.amount;
+    document.getElementById('add-desc').value = tx.desc;
+    document.getElementById('add-cat').value = tx.category;
+    document.getElementById('add-date').value = tx.date;
+    document.getElementById('modal-add').classList.add('active');
+  }
+
+  function saveTransaction() {
+    const amount = parseFloat(document.getElementById('add-amount').value);
+    const desc = document.getElementById('add-desc').value.trim();
+    const cat = document.getElementById('add-cat').value;
+    let date = document.getElementById('add-date').value;
+    const type = document.getElementById('add-type').value;
+
+    if (!amount || isNaN(amount) || amount <= 0) return alert('El monto debe ser un número positivo mayor a cero (0).');
+    if (!desc) return alert('Completa la descripción.');
+    if (!date) date = new Date().toISOString().split('T')[0];
+
+    if (editingTxId) {
+      const idx = getProfile().transactions.findIndex(t => t.id === editingTxId);
+      if(idx !== -1) getProfile().transactions[idx] = { id: editingTxId, type, amount, desc, category: cat, date };
+    } else {
+      getProfile().transactions.push({ id: Date.now().toString(), type, amount, desc, category: cat, date });
+    }
+
+    saveData(); closeModals(); renderUI();
+  }
+
+  function deleteTx(id) {
+    if(confirm('¿Eliminar esta transacción permanentemente?')) {
+      getProfile().transactions = getProfile().transactions.filter(t => t.id !== id);
+      saveData(); renderUI();
+    }
+  }
+
+  // --- CATEGORIES LOGIC ---
+  function addCategory() {
+    const val = document.getElementById('new-cat-name').value.trim();
+    if (val && !getProfile().categories.includes(val)) {
+      getProfile().categories.push(val); document.getElementById('new-cat-name').value = '';
+      saveData(); renderUI();
+    }
+  }
+
+  function deleteCategory(index) {
+    const catName = getProfile().categories[index];
+    const isUsed = getProfile().transactions.some(t => t.category === catName);
+    if (isUsed) {
+      alert(`No puedes eliminar "${catName}" porque tienes transacciones registradas bajo esta categoría.`);
+      return;
+    }
+    if(confirm(`¿Eliminar la categoría "${catName}"?`)) {
+      getProfile().categories.splice(index, 1);
+      saveData(); renderUI();
+    }
+  }
+
+  // --- RENDERING VIEWS ---
+  function renderUI() {
+    const prof = getProfile(); if(!prof) return;
+    document.getElementById('top-prof-name').innerText = prof.name;
+
+    // Cálculo de saldos: Ingresos suman a Saldo, Gastos/Ahorros restan de Saldo. Gasto de Ahorro resta de Ahorro.
+    let saldo = prof.baseBalance; let ahorros = 0;
+    prof.transactions.forEach(t => {
+      if (t.type === 'income') saldo += t.amount;
+      else if (t.type === 'expense') saldo -= t.amount;
+      else if (t.type === 'saving') { saldo -= t.amount; ahorros += t.amount; }
+      else if (t.type === 'saving_expense') { ahorros -= t.amount; }
+    });
+    document.getElementById('ui-saldo').innerText = fmt.format(saldo);
+    document.getElementById('ui-ahorro').innerText = fmt.format(ahorros);
+    document.getElementById('ui-ahorro-tab').innerText = fmt.format(ahorros);
+
+    // Listas (Categorias)
+    document.getElementById('ui-categories').innerHTML = prof.categories.map((c, i) => `<div class="chip">${c} <span class="chip-del" onclick="deleteCategory(${i})">×</span></div>`).join('');
+    
+    // Opciones de select (Filtros y Forms)
+    const catOpts = prof.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    document.getElementById('add-cat').innerHTML = catOpts;
+    document.getElementById('filter-cat').innerHTML = `<option value="all">Categoría: Todas</option>${catOpts}`;
+
+    // Recent TX (Dashboard)
+    renderTxBlock('ui-recent-tx', [...prof.transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 4));
+    
+    // Pestaña de Ahorros
+    const savTx = prof.transactions.filter(t => t.type === 'saving' || t.type === 'saving_expense').sort((a,b) => new Date(b.date) - new Date(a.date));
+    renderTxBlock('ui-savings-tx', savTx);
+
+    renderHistory();
+    renderAnalysis();
+  }
+
+  // Generador de bloques HTML de transacciones
+  function renderTxBlock(containerId, txArray) {
+    const html = txArray.map(t => {
+      // Si es saving_expense, lo marcamos en rojo y con estrella
+      let vClass = t.type === 'income' ? 'val-pos' : (t.type === 'saving' ? 'val-sav' : 'val-neg');
+      let sign = t.type === 'income' ? '+' : (t.type === 'saving' ? '⭐ +' : (t.type === 'saving_expense' ? '⭐ -' : '-'));
+      return `
+        <div class="item">
+          <div class="item-info" onclick="openEditModal('${t.id}')">
+            <div class="item-title">${t.desc}</div><div class="item-sub">${t.category} • ${t.date}</div>
+          </div>
+          <div class="item-val ${vClass}">${sign}${fmt.format(t.amount)}</div>
+          <button class="btn-del" onclick="deleteTx('${t.id}')">✕</button>
+        </div>`;
+    }).join('');
+    document.getElementById(containerId).innerHTML = html || '<div class="item-sub" style="padding:10px;">Sin registros.</div>';
+  }
+
+  // Pestaña: Historial (Con Filtros)
+  function renderHistory() {
+    const prof = getProfile();
+    const fMonth = document.getElementById('filter-month').value;
+    const fType = document.getElementById('filter-type').value;
+    const fCat = document.getElementById('filter-cat').value;
+
+    let filtered = [...prof.transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
+    if (fMonth) filtered = filtered.filter(t => t.date.startsWith(fMonth));
+    if (fType !== 'all') filtered = filtered.filter(t => t.type === fType);
+    if (fCat !== 'all') filtered = filtered.filter(t => t.category === fCat);
+    
+    renderTxBlock('ui-all-tx', filtered);
+  }
+
+  // Pestaña: Análisis Mensual
+  function renderAnalysis() {
+    const prof = getProfile();
+    const currMonth = new Date().toISOString().substring(0,7);
+    document.getElementById('analysis-month-title').innerText = `Estadísticas de ${currMonth}`;
+
+    let inc = 0; let exp = 0; let sav = 0;
+    const catExp = {};
+
+    prof.transactions.filter(t => t.date.startsWith(currMonth)).forEach(t => {
+      if(t.type === 'income') inc += t.amount;
+      else if(t.type === 'saving') sav += t.amount;
+      else if(t.type === 'saving_expense') sav -= t.amount; // Restamos del ahorro neto mensual
+      else if(t.type === 'expense') {
+        exp += t.amount;
+        catExp[t.category] = (catExp[t.category] || 0) + t.amount;
+      }
+    });
+
+    document.getElementById('analysis-balance').innerText = fmt.format(inc - exp - sav);
+    document.getElementById('analysis-balance').className = (inc - exp - sav) >= 0 ? 'val-cyan' : 'val-neg';
+
+    const maxVal = Math.max(inc, exp, sav, 1);
+    document.getElementById('chart-inc-val').innerText = fmt.format(inc);
+    document.getElementById('chart-inc-bar').style.width = `${(inc/maxVal)*100}%`;
+    document.getElementById('chart-exp-val').innerText = fmt.format(exp);
+    document.getElementById('chart-exp-bar').style.width = `${(exp/maxVal)*100}%`;
+    document.getElementById('chart-sav-val').innerText = fmt.format(sav);
+    document.getElementById('chart-sav-bar').style.width = `${(sav/maxVal)*100}%`;
+
+    const catHTML = Object.entries(catExp).sort((a,b) => b[1] - a[1]).map(([cat, val]) => `
+      <div class="item" style="border:none; padding:10px 0; border-bottom:1px solid var(--border); border-radius:0;">
+        <div class="item-info"><div class="item-title" style="font-size:14px;">${cat}</div></div>
+        <div class="item-val val-neg">-${fmt.format(val)}</div>
+      </div>
+    `).join('');
+    document.getElementById('analysis-cats').innerHTML = catHTML || '<div class="item-sub">No hay gastos registrados este mes.</div>';
+  }
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if (btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  }
+  function openModal(id) {
+    if(id === 'modal-config') { document.getElementById('config-name').value = getProfile().name; document.getElementById('config-balance').value = getProfile().baseBalance; }
+    document.getElementById(id).classList.add('active');
+  }
+  function closeModals() { document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active')); }
+</script>
+</body>
+</html>
