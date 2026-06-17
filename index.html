@@ -1,113 +1,703 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FinCore — Control Financiero</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #080810; --bg2: #0E0E1A; --bg3: #141428;
-    --card: #111120; --border: #1E1E3A;
-    --red: #FF2D55; --red-dim: rgba(255,45,85,0.15); --red-glow: rgba(255,45,85,0.4);
-    --cyan: #00F5D4; --cyan-dim: rgba(0,245,212,0.15); --cyan-glow: rgba(0,245,212,0.35);
-    --yellow: #FFD60A; --yellow-dim: rgba(255,214,10,0.15);
-    --green: #32D74B; --green-glow: rgba(50,215,75,0.35);
-    --text: #E8E8F0; --text2: #9090A8; --text3: #5A5A72;
-    --font-d: 'Rajdhani', sans-serif; --font-b: 'Inter', sans-serif; --font-m: 'JetBrains Mono', monospace;
-    --nav-h: 64px;
-  }
+  <!-- ============================================================
+       CONFIGURACIÓN DEL DOCUMENTO
+       - UTF-8 para caracteres especiales.
+       - Viewport para adaptarse a móviles.
+       - Título de la aplicación.
+  ============================================================ -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FinCore — Control Financiero</title>
 
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  body { background: var(--bg); color: var(--text); font-family: var(--font-b); min-height: 100vh; overflow-x: hidden; }
-  button { font-family: inherit; }
+  <!-- ============================================================
+       FUENTES DE GOOGLE
+       - Orbitron: títulos y números (estilo futurista).
+       - Rajdhani: textos generales (moderna y legible).
+       - Share Tech Mono: para etiquetas técnicas y fechas.
+  ============================================================ -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
-  .app { display: flex; flex-direction: column; min-height: 100vh; max-width: 480px; margin: 0 auto; position: relative; }
-  .screen { display: none; flex-direction: column; flex: 1; padding-bottom: calc(var(--nav-h) + 20px); overflow-y: auto; }
-  .screen.active { display: flex; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  <style>
+    /* ================================================================
+       VARIABLES CSS (Paleta de colores y efectos)
+       - Define los colores principales, bordes y sombras.
+       - Permite cambiar el tema fácilmente desde un solo lugar.
+    ================================================================ */
+    :root {
+      --red: #ff0040;          /* Rojo neón principal */
+      --red2: #ff4500;         /* Naranja-rojo para degradados */
+      --dark: #060008;         /* Fondo casi negro */
+      --dark2: #0a0010;        /* Fondo para modales */
+      --card: rgba(255,0,64,0.04); /* Fondo de tarjetas con transparencia roja */
+      --border: rgba(255,0,64,0.2); /* Borde tenue */
+      --white: #f0f0f0;        /* Blanco suave */
+      --gray: #888;            /* Gris para metadatos */
+      --text3: #444;           /* Gris oscuro para etiquetas */
+      --glow: 0 0 10px #ff0040, 0 0 30px #ff004060; /* Sombra brillante */
+      --glow2: 0 0 6px #ff004080; /* Sombra más suave */
+    }
 
-  /* TOP BAR & PROFILE SWITCH */
-  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--bg); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
-  .profile-title { cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; }
-  .profile-title h2 { font-family: var(--font-d); color: var(--cyan); margin: 0; font-size: 22px; text-shadow: 0 0 10px var(--cyan-dim); }
-  .profile-title small { font-size: 12px; color: var(--text3); }
-  .btn-icon { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
+    /* ================================================================
+       RESETEO Y ESTILOS BASE
+       - Elimina márgenes y paddings, usa box-sizing border-box.
+    ================================================================ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* NAV (Ajustado el tamaño de letra a 11px) */
-  .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; height: var(--nav-h); background: var(--bg2); border-top: 1px solid var(--border); display: flex; z-index: 100; justify-content: space-around; }
-  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: none; border: none; color: var(--text3); cursor: pointer; transition: 0.2s; padding: 0 2px; }
-  .nav-btn span { font-size: 11px; font-family: var(--font-d); font-weight: 600; letter-spacing: 0.5px; }
-  .nav-btn.active { color: var(--cyan); text-shadow: 0 0 10px var(--cyan-glow); }
+    /* ================================================================
+       CUERPO PRINCIPAL
+       - Fondo oscuro, texto blanco, fuente Rajdhani.
+       - Scroll horizontal desactivado, cursor de mira.
+    ================================================================ */
+    body {
+      background: var(--dark);
+      color: var(--white);
+      font-family: 'Rajdhani', sans-serif;
+      overflow-x: hidden;
+      cursor: crosshair;
+      min-height: 100vh;
+    }
 
-  /* HERO CARDS */
-  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px; }
-  .hero { background: linear-gradient(135deg, var(--bg2) 0%, #0E1020 100%); border: 1px solid var(--border); border-radius: 16px; padding: 16px; position: relative; }
-  .hero.full { grid-column: span 2; }
-  .hero-lbl { font-size: 11px; color: var(--text3); font-family: var(--font-d); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
-  .hero-val { font-family: var(--font-d); font-size: 26px; font-weight: 700; color: var(--text); }
-  .val-cyan { color: var(--cyan); text-shadow: 0 0 15px var(--cyan-dim); }
-  .val-green { color: var(--green); text-shadow: 0 0 15px var(--green-glow); }
+    /* ================================================================
+       OVERLAY DE SCANLINES (efecto de pantalla antigua)
+       - Líneas horizontales muy tenues superpuestas a toda la pantalla.
+    ================================================================ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
 
-  /* SECTION TITLES */
-  .sec-title { padding: 0 16px 10px; font-family: var(--font-d); font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; display: flex; justify-content: space-between; align-items: center; }
-  
-  /* LISTS & ITEMS */
-  .list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
-  .item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; padding: 12px; position: relative; overflow: hidden; }
-  .item-info { flex: 1; min-width: 0; cursor: pointer; padding-right: 10px;}
-  .item-title { font-family: var(--font-d); font-size: 16px; font-weight: 600; color: var(--text); }
-  .item-sub { font-size: 11px; color: var(--text3); font-family: var(--font-m); margin-top: 2px; }
-  .item-val { font-family: var(--font-d); font-size: 16px; font-weight: 700; white-space: nowrap; }
-  .val-pos { color: var(--cyan); } .val-neg { color: var(--red); } .val-sav { color: var(--green); }
-  .btn-del { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); border-radius: 6px; width: 32px; height: 32px; font-size: 14px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-left: 8px; }
+    /* ================================================================
+       FONDO DE CUADRÍCULA (grid)
+       - Líneas verticales y horizontales sutiles.
+    ================================================================ */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,0,64,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,0,64,0.04) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  /* FAB */
-  .fab { position: fixed; bottom: calc(var(--nav-h) + 16px); right: 20px; width: 56px; height: 56px; border-radius: 14px; background: var(--cyan); color: var(--bg); border: none; font-size: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--cyan-glow); cursor: pointer; z-index: 50; }
+    /* ================================================================
+       CONTENEDOR PRINCIPAL DE LA APP
+       - Ancho máximo 480px (diseño móvil), centrado.
+       - Capa superior al fondo de rejilla (z-index:1).
+    ================================================================ */
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
 
-  /* MODALS & FULLSCREEN */
-  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 400; display: none; align-items: flex-end; justify-content: center; }
-  .overlay.active { display: flex; }
-  .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px 20px 0 0; width: 100%; max-width: 480px; padding: 20px; max-height: 85vh; overflow-y: auto; }
-  .modal-h { font-family: var(--font-d); font-size: 22px; font-weight: 700; margin-bottom: 20px; }
-  
-  .field { margin-bottom: 16px; }
-  .field label { display: block; font-size: 12px; color: var(--text3); font-family: var(--font-d); margin-bottom: 6px; text-transform: uppercase; }
-  .field input, .field select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-family: var(--font-b); font-size: 15px; outline: none; }
-  .field input:focus, .field select:focus { border-color: var(--cyan); }
-  
-  .btn-primary { width: 100%; background: var(--cyan); color: var(--bg); border: none; padding: 14px; border-radius: 10px; font-family: var(--font-d); font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 10px; box-shadow: 0 0 15px var(--cyan-glow); }
-  .btn-danger { width: 100%; background: transparent; color: var(--red); border: 1px solid var(--red); padding: 14px; border-radius: 10px; font-family: var(--font-d); font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-  .btn-sec { width: 100%; background: var(--bg3); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 10px; font-family: var(--font-d); font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    /* ================================================================
+       PANTALLAS (cada sección)
+       - Cada pantalla es un contenedor que se oculta/muestra con clases.
+       - padding-bottom para dejar espacio al nav fijo.
+    ================================================================ */
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      padding-bottom: 84px; /* Espacio para el nav inferior */
+      overflow-y: auto;
+    }
+    .screen.active { display: flex; } /* Clase que activa la pantalla */
 
-  /* PROFILE MANAGER (FULLSCREEN) */
-  .manager-screen { position: fixed; inset: 0; background: var(--bg); z-index: 300; display: none; flex-direction: column; padding: 24px; max-width: 480px; margin: 0 auto; overflow-y: auto; }
-  .manager-screen.active { display: flex; }
-  .manager-screen h1 { font-family: var(--font-d); color: var(--cyan); font-size: 32px; margin-bottom: 5px; margin-top: 20px; }
-  .manager-screen p { color: var(--text2); margin-bottom: 20px; font-size: 14px; }
+    /* ================================================================
+       BARRA SUPERIOR (TOPBAR)
+       - Fija (sticky) al hacer scroll, fondo semi-transparente con blur.
+       - Muestra el nombre del perfil y botón de ajustes.
+    ================================================================ */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: rgba(6,0,8,0.90);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
 
-  /* CHIPS & CHARTS */
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-  .chip { background: var(--bg3); border: 1px solid var(--border); padding: 6px 12px; border-radius: 16px; font-size: 12px; font-family: var(--font-d); font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .chip-del { color: var(--red); cursor: pointer; font-size: 14px; font-weight: bold; }
-  
-  .chart-row { margin-bottom: 12px; }
-  .chart-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; font-weight: 600;}
-  .chart-bar-bg { width: 100%; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
-  .chart-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
-</style>
+    /* Área del nombre del perfil (clic para cambiar) */
+    .profile-title {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    .profile-title h2 {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: var(--red);
+      text-shadow: var(--glow2);
+      margin: 0;
+    }
+    .profile-title small {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+    }
+
+    /* Botón de ajustes (engranaje) */
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    /* ================================================================
+       NAVEGACIÓN INFERIOR (NAV)
+       - Fija en la parte inferior, con 5 botones.
+    ================================================================ */
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 64px;
+      background: rgba(6,0,8,0.95);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+      justify-content: space-around;
+      backdrop-filter: blur(12px);
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      transition: 0.2s;
+      padding: 0 2px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+    }
+    .nav-btn span {
+      font-size: 0.6rem;
+      font-family: 'Share Tech Mono', monospace;
+      letter-spacing: 1px;
+    }
+    .nav-btn.active {
+      color: var(--red);
+      text-shadow: var(--glow2);
+    }
+
+    /* ================================================================
+       TARJETAS DE TOTALES (HERO)
+       - Muestran saldo disponible y ahorro total.
+    ================================================================ */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 16px;
+    }
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 16px;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+      transition: all 0.3s;
+    }
+    .hero:hover {
+      border-color: var(--red);
+      box-shadow: 0 0 15px rgba(255,0,64,0.1);
+      transform: translateY(-2px);
+    }
+    .hero.full { grid-column: span 2; } /* Ocupa ambas columnas */
+    .hero-lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .hero-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    /* Colores para valores positivos/negativos (se usa rojo para todo para mantener coherencia) */
+    .val-cyan { color: var(--red); text-shadow: var(--glow2); }
+    .val-green { color: var(--red); text-shadow: var(--glow2); }
+    .val-neg { color: var(--red); text-shadow: var(--glow2); }
+    .val-pos { color: var(--red); text-shadow: var(--glow2); }
+
+    /* ================================================================
+       TÍTULOS DE SECCIÓN
+    ================================================================ */
+    .sec-title {
+      padding: 0 16px 10px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ================================================================
+       LISTAS Y ELEMENTOS (ITEMS)
+       - Cada transacción se muestra como un ítem con borde izquierdo rojo.
+    ================================================================ */
+    .list {
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+      transition: all 0.3s;
+    }
+    .item:hover {
+      border-color: var(--red);
+      background: rgba(255,0,64,0.08);
+      box-shadow: 0 0 15px rgba(255,0,64,0.1);
+      transform: translateY(-2px);
+    }
+    .item-info {
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;  /* Al hacer clic en el área, se abre edición */
+      padding-right: 10px;
+    }
+    .item-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .item-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+    .item-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .val-pos { color: var(--red); text-shadow: var(--glow2); }
+    .val-neg { color: var(--red); text-shadow: var(--glow2); }
+    .val-sav { color: var(--red); text-shadow: var(--glow2); }
+
+    /* Botón de eliminar (ícono X) */
+    .btn-del {
+      background: rgba(255,0,64,0.15);
+      color: var(--red);
+      border: 1px solid var(--red);
+      width: 32px;
+      height: 32px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
+      transition: all 0.3s;
+    }
+    .btn-del:hover {
+      background: rgba(255,0,64,0.3);
+      box-shadow: var(--glow2);
+    }
+
+    /* ================================================================
+       BOTÓN FLOTANTE (FAB) PARA AGREGAR TRANSACCIÓN
+       - Fijo en la esquina inferior derecha (subido para evitar el nav).
+    ================================================================ */
+    .fab {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--red), var(--red2));
+      border: none;
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 50;
+      box-shadow: var(--glow);
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      color: white;
+      transition: all 0.3s;
+      font-family: 'Orbitron', monospace;
+    }
+    .fab:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 20px #ff0040, 0 0 50px #ff004060;
+    }
+
+    /* ================================================================
+       MODALES Y OVERLAYS
+       - Overlay oscuro con desenfoque, modal desde abajo.
+    ================================================================ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 400;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .overlay.active { display: flex; }
+
+    .modal {
+      background: var(--dark2);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px 20px 32px;
+      clip-path: polygon(0 20px, 20px 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .modal-h {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--red);
+      text-shadow: var(--glow2);
+      margin-bottom: 20px;
+    }
+
+    /* Campos del formulario */
+    .field {
+      margin-bottom: 16px;
+    }
+    .field label {
+      display: block;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--red);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .field input, .field select {
+      width: 100%;
+      background: rgba(255,0,64,0.04);
+      border: 1px solid var(--border);
+      border-bottom: 2px solid rgba(255,0,64,0.3);
+      padding: 11px 14px;
+      color: var(--white);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.3s;
+      appearance: none;
+      -webkit-appearance: none;
+      border-radius: 0;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--red);
+      background: rgba(255,0,64,0.07);
+      box-shadow: var(--glow2);
+    }
+
+    /* Botones de acción dentro de los modales */
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(90deg, var(--red), var(--red2));
+      border: none;
+      padding: 14px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: white;
+      cursor: pointer;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      box-shadow: 0 0 15px rgba(255,0,64,0.3);
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    .btn-primary:hover { box-shadow: var(--glow); transform: translateY(-2px); }
+
+    .btn-danger {
+      width: 100%;
+      background: transparent;
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 14px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    .btn-danger:hover {
+      background: rgba(255,0,64,0.1);
+      box-shadow: var(--glow2);
+    }
+
+    .btn-sec {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 14px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--gray);
+      cursor: pointer;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    .btn-sec:hover { border-color: var(--red); color: var(--red); }
+
+    /* ================================================================
+       MODAL DE CONFIRMACIÓN Y ALERTA (personalizados)
+       - Se usan en lugar de alert() y confirm() nativos.
+    ================================================================ */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      backdrop-filter: blur(6px);
+      padding: 20px;
+    }
+    .confirm-overlay.active { display: flex; }
+
+    .confirm-box {
+      background: var(--dark2);
+      border: 1px solid var(--border);
+      padding: 32px 24px;
+      max-width: 340px;
+      width: 100%;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+      text-align: center;
+      box-shadow: 0 0 40px rgba(255,0,64,0.15);
+    }
+    .confirm-icon { font-size: 2.5rem; margin-bottom: 16px; filter: drop-shadow(0 0 8px rgba(255,0,64,0.6)); }
+    .confirm-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: var(--red);
+      text-shadow: var(--glow2);
+      margin-bottom: 10px;
+    }
+    .confirm-msg {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--gray);
+      letter-spacing: 1px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .confirm-btns {
+      display: flex;
+      gap: 10px;
+    }
+    .confirm-btns .btn-primary,
+    .confirm-btns .btn-sec {
+      flex: 1;
+      margin: 0;
+    }
+
+    /* ================================================================
+       GESTIÓN DE PERFILES (pantalla completa)
+    ================================================================ */
+    .manager-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--dark);
+      z-index: 300;
+      display: none;
+      flex-direction: column;
+      padding: 24px;
+      max-width: 480px;
+      margin: 0 auto;
+      overflow-y: auto;
+    }
+    .manager-screen.active { display: flex; }
+    .manager-screen h1 {
+      font-family: 'Orbitron', monospace;
+      color: var(--red);
+      font-size: 2rem;
+      font-weight: 900;
+      text-shadow: var(--glow2);
+      margin-bottom: 5px;
+      margin-top: 20px;
+    }
+    .manager-screen p {
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--gray);
+      margin-bottom: 20px;
+      font-size: 1rem;
+    }
+
+    /* ================================================================
+       CHIPS (categorías) Y GRÁFICOS DE BARRAS
+    ================================================================ */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
+    }
+    .chip-del {
+      color: var(--red);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .chart-row {
+      margin-bottom: 12px;
+    }
+    .chart-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .chart-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      clip-path: polygon(2px 0%, 100% 0%, calc(100% - 2px) 100%, 0% 100%);
+      overflow: hidden;
+    }
+    .chart-bar-fill {
+      height: 100%;
+      background: var(--red);
+      transition: width 0.5s ease;
+    }
+  </style>
 </head>
 <body>
 
+<!-- ================================================================
+     MODAL DE BACKUP (se muestra automáticamente si pasan 24h)
+================================================================ -->
 <div class="overlay" id="modal-backup-alert">
   <div class="modal">
     <div class="modal-h">Copia de Seguridad</div>
-    <p style="font-size: 14px; color: var(--text2); margin-bottom: 20px;">Han pasado más de 24 horas desde tu último respaldo. Es importante guardar una copia de tus datos para evitar perderlos si se borra el historial de tu navegador.</p>
+    <p style="font-size: 14px; color: var(--gray); margin-bottom: 20px;">
+      Han pasado más de 24 horas desde tu último respaldo. Es importante guardar una copia de tus datos para evitar perderlos si se borra el historial de tu navegador.
+    </p>
     <button class="btn-primary" onclick="downloadBackup()">Descargar Ahora</button>
     <button class="btn-sec" style="border:none;" onclick="closeModals()">Recordarme Luego</button>
   </div>
 </div>
 
+<!-- ================================================================
+     MODAL DE CONFIRMACIÓN (para acciones destructivas)
+================================================================ -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">CONFIRMAR</div>
+    <div class="confirm-msg" id="confirm-msg">¿Estás seguro?</div>
+    <div class="confirm-btns">
+      <button class="btn-primary" id="confirm-ok" onclick="confirmarAccion()">CONFIRMAR</button>
+      <button class="btn-sec" onclick="cerrarConfirm()">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODAL DE ALERTA (para mensajes informativos y errores)
+================================================================ -->
+<div class="confirm-overlay" id="alert-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="alert-icon">ℹ️</div>
+    <div class="confirm-title" id="alert-title">AVISO</div>
+    <div class="confirm-msg" id="alert-msg">Mensaje</div>
+    <div class="confirm-btns" style="justify-content:center;">
+      <button class="btn-primary" style="flex:0 1 auto; padding: 10px 30px;" onclick="cerrarAlerta()">ACEPTAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     GESTOR DE PERFILES (pantalla completa)
+================================================================ -->
 <div class="manager-screen" id="screen-profile-manager">
   <h1>Tus Perfiles</h1>
   <p>Selecciona un entorno financiero o crea uno nuevo.</p>
@@ -116,7 +706,12 @@
   <button class="btn-danger" id="btn-cancel-pm" style="display:none; border:none;" onclick="closeProfileManager()">Cancelar</button>
 </div>
 
+<!-- ================================================================
+     APLICACIÓN PRINCIPAL (se oculta hasta que se selecciona un perfil)
+================================================================ -->
 <div class="app" id="main-app" style="display:none;">
+
+  <!-- BARRA SUPERIOR -->
   <header class="topbar">
     <div class="profile-title" onclick="openProfileManager()">
       <h2 id="top-prof-name">Perfil</h2>
@@ -125,6 +720,7 @@
     <button class="btn-icon" onclick="openModal('modal-config')">⚙️</button>
   </header>
 
+  <!-- PANTALLA: PANEL (inicio) -->
   <main id="screen-panel" class="screen active">
     <div class="hero-grid">
       <div class="hero full">
@@ -140,14 +736,20 @@
         <button class="btn-sec" style="margin:0; font-size:12px; padding:10px;" onclick="switchTab('screen-savings', document.getElementById('nav-sav'))">Ver Ahorros</button>
       </div>
     </div>
-    <div class="sec-title">Últimos Movimientos <button class="btn-sec" style="width:auto; margin:0; padding:4px 10px; font-size:11px;" onclick="switchTab('screen-tx', document.getElementById('nav-tx'))">Ver Todo</button></div>
+    <div class="sec-title">
+      Últimos Movimientos
+      <button class="btn-sec" style="width:auto; margin:0; padding:4px 10px; font-size:11px;" onclick="switchTab('screen-tx', document.getElementById('nav-tx'))">Ver Todo</button>
+    </div>
     <div class="list" id="ui-recent-tx"></div>
   </main>
 
+  <!-- PANTALLA: HISTORIAL (con filtros) -->
   <main id="screen-tx" class="screen">
     <div class="sec-title" style="margin-top: 16px;">Filtros de Búsqueda</div>
     <div style="padding: 0 16px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <!-- Filtro por mes -->
       <input type="month" id="filter-month" class="btn-sec" style="margin:0; padding:10px;" onchange="renderHistory()">
+      <!-- Filtro por tipo de flujo -->
       <select id="filter-type" class="btn-sec" style="margin:0; padding:10px;" onchange="renderHistory()">
         <option value="all">Flujo: Todos</option>
         <option value="income">Ingresos (+)</option>
@@ -155,11 +757,13 @@
         <option value="saving">Ahorros (Guardado)</option>
         <option value="saving_expense">Ahorros (Gastado)</option>
       </select>
+      <!-- Filtro por categoría -->
       <select id="filter-cat" class="btn-sec" style="margin:0; padding:10px; grid-column: span 2;" onchange="renderHistory()"></select>
     </div>
     <div class="list" id="ui-all-tx"></div>
   </main>
 
+  <!-- PANTALLA: ANÁLISIS MENSUAL -->
   <main id="screen-analysis" class="screen">
     <div class="sec-title" style="margin-top: 16px;">Balance del Mes Actual</div>
     <div style="padding: 0 16px;">
@@ -167,10 +771,11 @@
         <div id="analysis-month-title" class="hero-lbl" style="text-align:center;">Mes</div>
         <div id="analysis-balance" style="text-align:center; font-family:var(--font-d); font-size:24px; font-weight:700; margin-top:8px;">$0</div>
       </div>
+      <!-- Gráficos de barras -->
       <div class="card" style="background:var(--card); padding:16px; border-radius:12px; border:1px solid var(--border); margin-bottom:16px;">
         <div class="chart-row">
           <div class="chart-label"><span>Ingresos</span><span id="chart-inc-val" class="val-pos">$0</span></div>
-          <div class="chart-bar-bg"><div id="chart-inc-bar" class="chart-bar-fill" style="background:var(--cyan); width:0%;"></div></div>
+          <div class="chart-bar-bg"><div id="chart-inc-bar" class="chart-bar-fill" style="background:var(--red); width:0%;"></div></div>
         </div>
         <div class="chart-row">
           <div class="chart-label"><span>Gastos</span><span id="chart-exp-val" class="val-neg">$0</span></div>
@@ -178,7 +783,7 @@
         </div>
         <div class="chart-row" style="margin-bottom:0;">
           <div class="chart-label"><span>Ahorrado Neto</span><span id="chart-sav-val" class="val-sav">$0</span></div>
-          <div class="chart-bar-bg"><div id="chart-sav-bar" class="chart-bar-fill" style="background:var(--green); width:0%;"></div></div>
+          <div class="chart-bar-bg"><div id="chart-sav-bar" class="chart-bar-fill" style="background:var(--red); width:0%;"></div></div>
         </div>
       </div>
       <div class="sec-title" style="padding:0; margin-bottom:10px;">Distribución de Gastos</div>
@@ -186,6 +791,7 @@
     </div>
   </main>
 
+  <!-- PANTALLA: AHORROS -->
   <main id="screen-savings" class="screen">
     <div class="hero full" style="margin: 16px; text-align:center;">
       <div class="hero-lbl">Ahorro Acumulado</div>
@@ -195,6 +801,7 @@
     <div class="list" id="ui-savings-tx"></div>
   </main>
 
+  <!-- PANTALLA: CATEGORÍAS (AJUSTES) -->
   <main id="screen-cats" class="screen">
     <div class="sec-title" style="margin-top: 16px;">Gestión de Categorías</div>
     <div style="padding: 0 16px;">
@@ -207,6 +814,7 @@
     </div>
   </main>
 
+  <!-- NAVEGACIÓN INFERIOR -->
   <nav class="nav">
     <button class="nav-btn active" onclick="switchTab('screen-panel', this)"><span>PANEL</span></button>
     <button class="nav-btn" id="nav-tx" onclick="switchTab('screen-tx', this)"><span>HISTORIAL</span></button>
@@ -215,9 +823,15 @@
     <button class="nav-btn" onclick="switchTab('screen-cats', this)"><span>AJUSTES</span></button>
   </nav>
 
+  <!-- BOTÓN FLOTANTE PARA AGREGAR TRANSACCIÓN -->
   <button class="fab" onclick="openAddModal()">+</button>
 </div>
 
+<!-- ================================================================
+     MODALES DE FORMULARIOS (Crear Perfil, Transacción, Configuración)
+================================================================ -->
+
+<!-- Modal Crear Perfil -->
 <div class="overlay" id="modal-create-profile">
   <div class="modal">
     <div class="modal-h">Nuevo Perfil</div>
@@ -241,6 +855,7 @@
   </div>
 </div>
 
+<!-- Modal Agregar/Editar Transacción -->
 <div class="overlay" id="modal-add">
   <div class="modal">
     <div class="modal-h" id="modal-add-title">Nueva Transacción</div>
@@ -274,6 +889,7 @@
   </div>
 </div>
 
+<!-- Modal Configuración del Perfil -->
 <div class="overlay" id="modal-config">
   <div class="modal">
     <div class="modal-h">Ajustes Generales</div>
@@ -299,32 +915,119 @@
   </div>
 </div>
 
+<!-- ================================================================
+     JAVASCRIPT – LÓGICA DE LA APLICACIÓN
+     - Contiene todas las funciones para gestionar perfiles, transacciones,
+       categorías, filtros, gráficos y modales personalizados.
+================================================================ -->
 <script>
+  // ================================================================
+  // 1. CONFIGURACIÓN INICIAL Y VARIABLES GLOBALES
+  // ================================================================
+
+  // Categorías predeterminadas según el tipo de perfil
   const defaultCatsPersonal = ['Alimentación', 'Gastos de casa', 'Hijos', 'Gastos varios'];
   const defaultCatsBusiness = ['Servicios Técnicos', 'Inventario', 'Publicidad', 'Ventas'];
 
+  // Datos de la aplicación (cargados desde localStorage)
   let appData = JSON.parse(localStorage.getItem('fincore_data_v3')) || { profiles: {}, lastActiveId: null };
-  let editingTxId = null; 
 
+  // ID de la transacción que se está editando (null si es nueva)
+  let editingTxId = null;
+
+  // Función pendiente para ejecutar al confirmar en el modal de confirmación
+  let pendingAction = null;
+
+  // Formateador de moneda (COP, sin decimales)
   const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
-  function saveData() { localStorage.setItem('fincore_data_v3', JSON.stringify(appData)); }
-  function getProfile() { return appData.profiles[appData.lastActiveId]; }
+  // ================================================================
+  // 2. FUNCIONES DE MODALES PERSONALIZADOS
+  //    - Alertas (un solo botón) y Confirmaciones (dos botones)
+  // ================================================================
 
+  /**
+   * Muestra una alerta con icono, título y mensaje.
+   * @param {string} icon - Emoji o símbolo (ej. "⚠️", "✅")
+   * @param {string} title - Título de la alerta
+   * @param {string} msg - Mensaje descriptivo
+   */
+  function mostrarAlerta(icon, title, msg) {
+    document.getElementById('alert-icon').innerText = icon;
+    document.getElementById('alert-title').innerText = title;
+    document.getElementById('alert-msg').innerText = msg;
+    document.getElementById('alert-overlay').classList.add('active');
+  }
+
+  /** Cierra la alerta */
+  function cerrarAlerta() {
+    document.getElementById('alert-overlay').classList.remove('active');
+  }
+
+  /**
+   * Muestra un modal de confirmación con dos botones.
+   * @param {string} icon - Emoji o símbolo
+   * @param {string} title - Título
+   * @param {string} msg - Mensaje
+   * @param {Function} onOk - Función a ejecutar si se confirma
+   */
+  function mostrarConfirm(icon, title, msg, onOk) {
+    document.getElementById('confirm-icon').innerText = icon;
+    document.getElementById('confirm-title').innerText = title;
+    document.getElementById('confirm-msg').innerText = msg;
+    pendingAction = onOk;
+    document.getElementById('confirm-overlay').classList.add('active');
+  }
+
+  /** Cierra la confirmación sin ejecutar la acción */
+  function cerrarConfirm() {
+    document.getElementById('confirm-overlay').classList.remove('active');
+    pendingAction = null;
+  }
+
+  /** Ejecuta la acción pendiente (si existe) y cierra el modal */
+  function confirmarAccion() {
+    if (pendingAction) {
+      pendingAction();
+      pendingAction = null;
+    }
+    cerrarConfirm();
+  }
+
+  // ================================================================
+  // 3. FUNCIONES DE ALMACENAMIENTO Y PERFILES
+  // ================================================================
+
+  /** Guarda todos los datos en localStorage */
+  function saveData() {
+    localStorage.setItem('fincore_data_v3', JSON.stringify(appData));
+  }
+
+  /** Obtiene el perfil activo actual */
+  function getProfile() {
+    return appData.profiles[appData.lastActiveId];
+  }
+
+  /** Inicializa la aplicación al cargar la página */
   window.onload = () => {
+    // Fecha actual para el campo de fecha del modal
     document.getElementById('add-date').valueAsDate = new Date();
-    const currMonth = new Date().toISOString().substring(0,7);
+    // Mes actual para el filtro de mes
+    const currMonth = new Date().toISOString().substring(0, 7);
     document.getElementById('filter-month').value = currMonth;
 
+    // Si no hay perfiles o el último activo no existe, abrir el gestor de perfiles
     if (Object.keys(appData.profiles).length === 0 || !appData.lastActiveId || !appData.profiles[appData.lastActiveId]) {
       openProfileManager();
     } else {
       selectProfile(appData.lastActiveId);
-      checkAutoBackup();
+      checkAutoBackup(); // Verificar si necesita recordatorio de backup
     }
   };
 
   // --- BACKUP LOGIC ---
+
+  /** Verifica si han pasado más de 24h desde el último backup */
   function checkAutoBackup() {
     const lastBackup = localStorage.getItem('fincore_last_backup');
     const now = Date.now();
@@ -333,9 +1036,10 @@
     }
   }
 
+  /** Descarga un archivo JSON con todos los datos de la app */
   function downloadBackup() {
     const dataStr = JSON.stringify(appData);
-    const blob = new Blob([dataStr], {type: "application/json"});
+    const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -346,82 +1050,154 @@
     closeModals();
   }
 
-  function triggerImport() { document.getElementById('import-file').click(); }
-  
+  /** Dispara el input file para importar backup */
+  function triggerImport() {
+    document.getElementById('import-file').click();
+  }
+
+  /** Procesa el archivo JSON importado y restaura los datos */
   function handleImport(event) {
     const file = event.target.files[0];
-    if(!file) return;
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
       try {
         const data = JSON.parse(e.target.result);
-        if(data.profiles) {
+        if (data.profiles) {
           appData = data;
           saveData();
-          alert('Backup restaurado con éxito');
-          location.reload();
-        } else { alert('Archivo inválido. Asegúrate de que sea un backup de FinCore.'); }
-      } catch(err) { alert('Error leyendo el archivo JSON.'); }
+          mostrarAlerta('✅', '¡Éxito!', 'Backup restaurado correctamente. La página se recargará.');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          mostrarAlerta('⚠️', 'Error', 'Archivo inválido. Asegúrate de que sea un backup de FinCore.');
+        }
+      } catch (err) {
+        mostrarAlerta('⚠️', 'Error', 'No se pudo leer el archivo JSON.');
+      }
     };
     reader.readAsText(file);
   }
 
   // --- PROFILE LOGIC ---
+
+  /** Abre el gestor de perfiles (oculta la app principal) */
   function openProfileManager() {
     document.getElementById('main-app').style.display = 'none';
     const pm = document.getElementById('screen-profile-manager');
     pm.classList.add('active');
-    document.getElementById('btn-cancel-pm').style.display = (appData.lastActiveId && appData.profiles[appData.lastActiveId]) ? 'block' : 'none';
+    // Muestra el botón "Cancelar" solo si hay un perfil activo
+    document.getElementById('btn-cancel-pm').style.display =
+      (appData.lastActiveId && appData.profiles[appData.lastActiveId]) ? 'block' : 'none';
     renderProfileList();
   }
-  function closeProfileManager() { document.getElementById('screen-profile-manager').classList.remove('active'); document.getElementById('main-app').style.display = 'flex'; }
 
+  /** Cierra el gestor de perfiles y muestra la app */
+  function closeProfileManager() {
+    document.getElementById('screen-profile-manager').classList.remove('active');
+    document.getElementById('main-app').style.display = 'flex';
+  }
+
+  /** Renderiza la lista de perfiles en el gestor */
   function renderProfileList() {
     const list = document.getElementById('pm-list');
     const profiles = Object.entries(appData.profiles);
-    if (profiles.length === 0) return list.innerHTML = '<div class="item-sub" style="margin-bottom:15px;">No tienes perfiles.</div>';
+    if (profiles.length === 0) {
+      list.innerHTML = '<div class="item-sub" style="margin-bottom:15px;">No tienes perfiles.</div>';
+      return;
+    }
     list.innerHTML = profiles.map(([id, prof]) => `
       <div class="item clickable" onclick="selectProfile('${id}')">
-        <div class="item-info"><div class="item-title">${prof.name}</div><div class="item-sub">${prof.type === 'personal' ? 'Personal' : 'Empresarial'}</div></div>
+        <div class="item-info">
+          <div class="item-title">${prof.name}</div>
+          <div class="item-sub">${prof.type === 'personal' ? 'Personal' : 'Empresarial'}</div>
+        </div>
         <div class="item-val" style="color:var(--text3);">▶</div>
       </div>
     `).join('');
   }
 
-  function openCreateProfileModal() { document.getElementById('cp-name').value = ''; document.getElementById('cp-balance').value = ''; document.getElementById('modal-create-profile').classList.add('active'); }
+  /** Abre el modal para crear un nuevo perfil */
+  function openCreateProfileModal() {
+    document.getElementById('cp-name').value = '';
+    document.getElementById('cp-balance').value = '';
+    document.getElementById('modal-create-profile').classList.add('active');
+  }
 
+  /** Crea un nuevo perfil con los datos del formulario */
   function createNewProfile() {
     const name = document.getElementById('cp-name').value.trim();
     const type = document.getElementById('cp-type').value;
     const balance = parseFloat(document.getElementById('cp-balance').value) || 0;
-    if (!name) return alert('Debes darle un nombre.');
-    if (balance < 0) return alert('El saldo inicial no puede ser negativo.');
-    
+
+    if (!name) {
+      mostrarAlerta('⚠️', 'Error', 'Debes darle un nombre al perfil.');
+      return;
+    }
+    if (balance < 0) {
+      mostrarAlerta('⚠️', 'Error', 'El saldo inicial no puede ser negativo.');
+      return;
+    }
+
     const newId = 'prof_' + Date.now();
-    appData.profiles[newId] = { name, type, baseBalance: balance, categories: type === 'personal' ? [...defaultCatsPersonal] : [...defaultCatsBusiness], transactions: [] };
-    saveData(); closeModals(); renderProfileList();
+    appData.profiles[newId] = {
+      name,
+      type,
+      baseBalance: balance,
+      categories: type === 'personal' ? [...defaultCatsPersonal] : [...defaultCatsBusiness],
+      transactions: []
+    };
+    saveData();
+    closeModals();
+    renderProfileList();
+    mostrarAlerta('✅', 'Perfil Creado', `El perfil "${name}" se ha creado correctamente.`);
   }
 
+  /** Selecciona un perfil y lo activa */
   function selectProfile(id) {
-    appData.lastActiveId = id; saveData(); closeProfileManager();
-    switchTab('screen-panel', document.querySelector('.nav-btn')); renderUI();
+    appData.lastActiveId = id;
+    saveData();
+    closeProfileManager();
+    // Cambia a la pestaña "PANEL" y actualiza la interfaz
+    switchTab('screen-panel', document.querySelector('.nav-btn'));
+    renderUI();
   }
 
+  /** Guarda los cambios de configuración del perfil actual */
   function saveProfileConfig() {
     const name = document.getElementById('config-name').value.trim();
     const bal = parseFloat(document.getElementById('config-balance').value);
     if (name) getProfile().name = name;
     if (!isNaN(bal) && bal >= 0) getProfile().baseBalance = bal;
-    saveData(); closeModals(); renderUI();
+    saveData();
+    closeModals();
+    renderUI();
+    mostrarAlerta('✅', 'Perfil Actualizado', 'Los cambios se guardaron correctamente.');
   }
 
+  /** Elimina el perfil actual (con confirmación) */
   function deleteCurrentProfile() {
-    if(confirm('ATENCIÓN: Esto borrará este perfil y sus transacciones. ¿Continuar?')) {
-      delete appData.profiles[appData.lastActiveId]; appData.lastActiveId = null; saveData(); closeModals(); openProfileManager();
-    }
+    const prof = getProfile();
+    if (!prof) return;
+    mostrarConfirm(
+      '⚠️',
+      'Eliminar Perfil',
+      `¿Estás seguro de eliminar el perfil "${prof.name}"? Se borrarán todas sus transacciones. Esta acción no se puede deshacer.`,
+      () => {
+        delete appData.profiles[appData.lastActiveId];
+        appData.lastActiveId = null;
+        saveData();
+        closeModals();
+        openProfileManager();
+        mostrarAlerta('🗑️', 'Perfil Eliminado', 'El perfil ha sido eliminado permanentemente.');
+      }
+    );
   }
 
-  // --- TRANSACTIONS LOGIC ---
+  // ================================================================
+  // 4. LÓGICA DE TRANSACCIONES (CRUD)
+  // ================================================================
+
+  /** Abre el modal para agregar una nueva transacción */
   function openAddModal() {
     editingTxId = null;
     document.getElementById('modal-add-title').innerText = 'Nueva Transacción';
@@ -431,9 +1207,10 @@
     document.getElementById('modal-add').classList.add('active');
   }
 
+  /** Abre el modal en modo edición con los datos de la transacción seleccionada */
   function openEditModal(id) {
     const tx = getProfile().transactions.find(t => t.id === id);
-    if(!tx) return;
+    if (!tx) return;
     editingTxId = id;
     document.getElementById('modal-add-title').innerText = 'Editar Transacción';
     document.getElementById('btn-save-tx').innerText = 'Actualizar Cambios';
@@ -445,6 +1222,11 @@
     document.getElementById('modal-add').classList.add('active');
   }
 
+  /**
+   * Guarda una transacción (nueva o actualizada).
+   * - Genera un timestamp con la hora actual para ordenar correctamente.
+   * - Si es edición, mantiene el timestamp original (no se actualiza).
+   */
   function saveTransaction() {
     const amount = parseFloat(document.getElementById('add-amount').value);
     const desc = document.getElementById('add-desc').value.trim();
@@ -452,56 +1234,130 @@
     let date = document.getElementById('add-date').value;
     const type = document.getElementById('add-type').value;
 
-    if (!amount || isNaN(amount) || amount <= 0) return alert('El monto debe ser un número positivo mayor a cero (0).');
-    if (!desc) return alert('Completa la descripción.');
+    // Validaciones con alerta personalizada
+    if (!amount || isNaN(amount) || amount <= 0) {
+      mostrarAlerta('⚠️', 'Error', 'El monto debe ser un número positivo mayor a cero.');
+      return;
+    }
+    if (!desc) {
+      mostrarAlerta('⚠️', 'Error', 'Completa la descripción.');
+      return;
+    }
     if (!date) date = new Date().toISOString().split('T')[0];
 
     if (editingTxId) {
+      // Actualizar transacción existente (mantenemos el timestamp original)
       const idx = getProfile().transactions.findIndex(t => t.id === editingTxId);
-      if(idx !== -1) getProfile().transactions[idx] = { id: editingTxId, type, amount, desc, category: cat, date };
+      if (idx !== -1) {
+        // Conservamos el timestamp existente
+        const existing = getProfile().transactions[idx];
+        getProfile().transactions[idx] = {
+          id: editingTxId,
+          type,
+          amount,
+          desc,
+          category: cat,
+          date,
+          timestamp: existing.timestamp // ← No cambiamos la hora
+        };
+      }
     } else {
-      getProfile().transactions.push({ id: Date.now().toString(), type, amount, desc, category: cat, date });
+      // Nueva transacción: asignamos timestamp actual (incluye hora, minuto, segundo, ms)
+      const now = Date.now();
+      getProfile().transactions.push({
+        id: now.toString(),
+        type,
+        amount,
+        desc,
+        category: cat,
+        date,
+        timestamp: now // ← Guardamos el timestamp completo para ordenar
+      });
     }
 
-    saveData(); closeModals(); renderUI();
+    saveData();
+    closeModals();
+    renderUI();
+    mostrarAlerta('✅', 'Transacción Guardada', 'El movimiento se registró correctamente.');
   }
 
+  /** Elimina una transacción (con confirmación) */
   function deleteTx(id) {
-    if(confirm('¿Eliminar esta transacción permanentemente?')) {
-      getProfile().transactions = getProfile().transactions.filter(t => t.id !== id);
-      saveData(); renderUI();
-    }
+    const tx = getProfile().transactions.find(t => t.id === id);
+    if (!tx) return;
+    mostrarConfirm(
+      '🗑️',
+      'Eliminar Transacción',
+      `¿Eliminar "${tx.desc}" por ${fmt.format(tx.amount)}? Esta acción no se puede deshacer.`,
+      () => {
+        getProfile().transactions = getProfile().transactions.filter(t => t.id !== id);
+        saveData();
+        renderUI();
+        mostrarAlerta('🗑️', 'Eliminado', 'La transacción fue eliminada permanentemente.');
+      }
+    );
   }
 
-  // --- CATEGORIES LOGIC ---
+  // ================================================================
+  // 5. LÓGICA DE CATEGORÍAS
+  // ================================================================
+
+  /** Añade una nueva categoría al perfil actual */
   function addCategory() {
     const val = document.getElementById('new-cat-name').value.trim();
     if (val && !getProfile().categories.includes(val)) {
-      getProfile().categories.push(val); document.getElementById('new-cat-name').value = '';
-      saveData(); renderUI();
+      getProfile().categories.push(val);
+      document.getElementById('new-cat-name').value = '';
+      saveData();
+      renderUI();
+      mostrarAlerta('✅', 'Categoría Añadida', `"${val}" se agregó correctamente.`);
+    } else if (val) {
+      mostrarAlerta('⚠️', 'Aviso', 'Esa categoría ya existe.');
     }
   }
 
+  /** Elimina una categoría (solo si no está en uso) */
   function deleteCategory(index) {
     const catName = getProfile().categories[index];
     const isUsed = getProfile().transactions.some(t => t.category === catName);
     if (isUsed) {
-      alert(`No puedes eliminar "${catName}" porque tienes transacciones registradas bajo esta categoría.`);
+      mostrarAlerta('⚠️', 'No se puede eliminar', `"${catName}" está en uso por una o más transacciones.`);
       return;
     }
-    if(confirm(`¿Eliminar la categoría "${catName}"?`)) {
-      getProfile().categories.splice(index, 1);
-      saveData(); renderUI();
-    }
+    mostrarConfirm(
+      '🗑️',
+      'Eliminar Categoría',
+      `¿Eliminar la categoría "${catName}"?`,
+      () => {
+        getProfile().categories.splice(index, 1);
+        saveData();
+        renderUI();
+        mostrarAlerta('🗑️', 'Eliminada', `Categoría "${catName}" eliminada.`);
+      }
+    );
   }
 
-  // --- RENDERING VIEWS ---
+  // ================================================================
+  // 6. FUNCIONES DE RENDERIZADO (UI)
+  // ================================================================
+
+  /**
+   * Función principal que actualiza toda la interfaz:
+   * - Totales (saldo, ahorro)
+   * - Categorías
+   * - Lista de movimientos recientes (ordenados por timestamp descendente)
+   * - Historial de ahorros
+   * - Historial con filtros
+   * - Análisis mensual
+   */
   function renderUI() {
-    const prof = getProfile(); if(!prof) return;
+    const prof = getProfile();
+    if (!prof) return;
     document.getElementById('top-prof-name').innerText = prof.name;
 
-    // Cálculo de saldos: Ingresos suman a Saldo, Gastos/Ahorros restan de Saldo. Gasto de Ahorro resta de Ahorro.
-    let saldo = prof.baseBalance; let ahorros = 0;
+    // --- Cálculo de saldos ---
+    let saldo = prof.baseBalance;
+    let ahorros = 0;
     prof.transactions.forEach(t => {
       if (t.type === 'income') saldo += t.amount;
       else if (t.type === 'expense') saldo -= t.amount;
@@ -512,110 +1368,187 @@
     document.getElementById('ui-ahorro').innerText = fmt.format(ahorros);
     document.getElementById('ui-ahorro-tab').innerText = fmt.format(ahorros);
 
-    // Listas (Categorias)
-    document.getElementById('ui-categories').innerHTML = prof.categories.map((c, i) => `<div class="chip">${c} <span class="chip-del" onclick="deleteCategory(${i})">×</span></div>`).join('');
-    
-    // Opciones de select (Filtros y Forms)
+    // --- Categorías (chips) ---
+    document.getElementById('ui-categories').innerHTML = prof.categories.map((c, i) =>
+      `<div class="chip">${c} <span class="chip-del" onclick="deleteCategory(${i})">×</span></div>`
+    ).join('');
+
+    // --- Opciones de selects (categorías) ---
     const catOpts = prof.categories.map(c => `<option value="${c}">${c}</option>`).join('');
     document.getElementById('add-cat').innerHTML = catOpts;
     document.getElementById('filter-cat').innerHTML = `<option value="all">Categoría: Todas</option>${catOpts}`;
 
-    // Recent TX (Dashboard)
-    renderTxBlock('ui-recent-tx', [...prof.transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 4));
-    
-    // Pestaña de Ahorros
-    const savTx = prof.transactions.filter(t => t.type === 'saving' || t.type === 'saving_expense').sort((a,b) => new Date(b.date) - new Date(a.date));
+    // --- Movimientos recientes (más nuevos primero) ---
+    // Se ordena por timestamp descendente (más reciente primero)
+    const sortedTx = [...prof.transactions].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    renderTxBlock('ui-recent-tx', sortedTx.slice(0, 4));
+
+    // --- Historial de ahorros (más nuevos primero) ---
+    const savTx = prof.transactions
+      .filter(t => t.type === 'saving' || t.type === 'saving_expense')
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     renderTxBlock('ui-savings-tx', savTx);
 
+    // --- Historial con filtros ---
     renderHistory();
+
+    // --- Análisis mensual ---
     renderAnalysis();
   }
 
-  // Generador de bloques HTML de transacciones
+  /**
+   * Renderiza un bloque de transacciones en el contenedor especificado.
+   * IMPORTANTE: El array txArray debe venir ya ordenado (descendente por timestamp)
+   * para que el más reciente aparezca primero.
+   * Además, se muestra la hora (HH:MM) junto a la fecha.
+   */
   function renderTxBlock(containerId, txArray) {
     const html = txArray.map(t => {
-      // Si es saving_expense, lo marcamos en rojo y con estrella
       let vClass = t.type === 'income' ? 'val-pos' : (t.type === 'saving' ? 'val-sav' : 'val-neg');
       let sign = t.type === 'income' ? '+' : (t.type === 'saving' ? '⭐ +' : (t.type === 'saving_expense' ? '⭐ -' : '-'));
+
+      // Formatear fecha y hora para mostrar en el subtítulo
+      let dateStr = t.date;
+      if (t.timestamp) {
+        const d = new Date(t.timestamp);
+        const horas = String(d.getHours()).padStart(2, '0');
+        const minutos = String(d.getMinutes()).padStart(2, '0');
+        dateStr += ` ${horas}:${minutos}`;
+      }
+
       return `
         <div class="item">
           <div class="item-info" onclick="openEditModal('${t.id}')">
-            <div class="item-title">${t.desc}</div><div class="item-sub">${t.category} • ${t.date}</div>
+            <div class="item-title">${t.desc}</div>
+            <div class="item-sub">${t.category} • ${dateStr}</div>
           </div>
           <div class="item-val ${vClass}">${sign}${fmt.format(t.amount)}</div>
           <button class="btn-del" onclick="deleteTx('${t.id}')">✕</button>
-        </div>`;
+        </div>
+      `;
     }).join('');
     document.getElementById(containerId).innerHTML = html || '<div class="item-sub" style="padding:10px;">Sin registros.</div>';
   }
 
-  // Pestaña: Historial (Con Filtros)
+  /**
+   * Renderiza el historial completo aplicando los filtros seleccionados.
+   * - Filtra por mes, tipo y categoría.
+   * - Ordena los resultados por timestamp descendente (más reciente primero).
+   */
   function renderHistory() {
     const prof = getProfile();
     const fMonth = document.getElementById('filter-month').value;
     const fType = document.getElementById('filter-type').value;
     const fCat = document.getElementById('filter-cat').value;
 
-    let filtered = [...prof.transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
+    // Partimos de todas las transacciones ordenadas por timestamp descendente
+    let filtered = [...prof.transactions].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    // Aplicar filtros
     if (fMonth) filtered = filtered.filter(t => t.date.startsWith(fMonth));
     if (fType !== 'all') filtered = filtered.filter(t => t.type === fType);
     if (fCat !== 'all') filtered = filtered.filter(t => t.category === fCat);
-    
+
     renderTxBlock('ui-all-tx', filtered);
   }
 
-  // Pestaña: Análisis Mensual
+  /**
+   * Renderiza el análisis mensual:
+   * - Balance del mes
+   * - Gráficos de barras para ingresos, gastos y ahorro neto
+   * - Distribución de gastos por categoría
+   */
   function renderAnalysis() {
     const prof = getProfile();
-    const currMonth = new Date().toISOString().substring(0,7);
+    const currMonth = new Date().toISOString().substring(0, 7);
     document.getElementById('analysis-month-title').innerText = `Estadísticas de ${currMonth}`;
 
-    let inc = 0; let exp = 0; let sav = 0;
+    let inc = 0, exp = 0, sav = 0;
     const catExp = {};
 
+    // Acumular valores del mes actual
     prof.transactions.filter(t => t.date.startsWith(currMonth)).forEach(t => {
-      if(t.type === 'income') inc += t.amount;
-      else if(t.type === 'saving') sav += t.amount;
-      else if(t.type === 'saving_expense') sav -= t.amount; // Restamos del ahorro neto mensual
-      else if(t.type === 'expense') {
+      if (t.type === 'income') inc += t.amount;
+      else if (t.type === 'saving') sav += t.amount;
+      else if (t.type === 'saving_expense') sav -= t.amount;
+      else if (t.type === 'expense') {
         exp += t.amount;
         catExp[t.category] = (catExp[t.category] || 0) + t.amount;
       }
     });
 
-    document.getElementById('analysis-balance').innerText = fmt.format(inc - exp - sav);
-    document.getElementById('analysis-balance').className = (inc - exp - sav) >= 0 ? 'val-cyan' : 'val-neg';
+    const balance = inc - exp - sav;
+    document.getElementById('analysis-balance').innerText = fmt.format(balance);
+    document.getElementById('analysis-balance').className = balance >= 0 ? 'val-cyan' : 'val-neg';
 
+    // Barras proporcionales
     const maxVal = Math.max(inc, exp, sav, 1);
     document.getElementById('chart-inc-val').innerText = fmt.format(inc);
-    document.getElementById('chart-inc-bar').style.width = `${(inc/maxVal)*100}%`;
+    document.getElementById('chart-inc-bar').style.width = `${(inc / maxVal) * 100}%`;
     document.getElementById('chart-exp-val').innerText = fmt.format(exp);
-    document.getElementById('chart-exp-bar').style.width = `${(exp/maxVal)*100}%`;
+    document.getElementById('chart-exp-bar').style.width = `${(exp / maxVal) * 100}%`;
     document.getElementById('chart-sav-val').innerText = fmt.format(sav);
-    document.getElementById('chart-sav-bar').style.width = `${(sav/maxVal)*100}%`;
+    document.getElementById('chart-sav-bar').style.width = `${(sav / maxVal) * 100}%`;
 
-    const catHTML = Object.entries(catExp).sort((a,b) => b[1] - a[1]).map(([cat, val]) => `
-      <div class="item" style="border:none; padding:10px 0; border-bottom:1px solid var(--border); border-radius:0;">
-        <div class="item-info"><div class="item-title" style="font-size:14px;">${cat}</div></div>
-        <div class="item-val val-neg">-${fmt.format(val)}</div>
-      </div>
-    `).join('');
+    // Distribución de gastos por categoría
+    const catHTML = Object.entries(catExp)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, val]) => `
+        <div class="item" style="border:none; padding:10px 0; border-bottom:1px solid var(--border); border-radius:0;">
+          <div class="item-info"><div class="item-title" style="font-size:14px;">${cat}</div></div>
+          <div class="item-val val-neg">-${fmt.format(val)}</div>
+        </div>
+      `).join('');
     document.getElementById('analysis-cats').innerHTML = catHTML || '<div class="item-sub">No hay gastos registrados este mes.</div>';
   }
 
+  // ================================================================
+  // 7. NAVEGACIÓN ENTRE PESTAÑAS
+  // ================================================================
+
+  /**
+   * Cambia la pestaña activa.
+   * @param {string} tabId - ID del elemento screen a mostrar
+   * @param {HTMLElement} btn - Botón de navegación correspondiente
+   */
   function switchTab(tabId, btn) {
+    // Ocultar todas las pantallas
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    // Mostrar la seleccionada
     document.getElementById(tabId).classList.add('active');
     if (btn) {
+      // Actualizar clase active en los botones de navegación
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     }
   }
+
+  // ================================================================
+  // 8. ABRIR / CERRAR MODALES GENERALES
+  // ================================================================
+
+  /**
+   * Abre un modal por su ID.
+   * Para el modal de configuración, precarga los valores actuales.
+   */
   function openModal(id) {
-    if(id === 'modal-config') { document.getElementById('config-name').value = getProfile().name; document.getElementById('config-balance').value = getProfile().baseBalance; }
+    if (id === 'modal-config') {
+      document.getElementById('config-name').value = getProfile().name;
+      document.getElementById('config-balance').value = getProfile().baseBalance;
+    }
     document.getElementById(id).classList.add('active');
   }
-  function closeModals() { document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active')); }
+
+  /** Cierra todos los modales (overlays) y también los de confirmación/alerta */
+  function closeModals() {
+    document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active'));
+    cerrarConfirm();
+    cerrarAlerta();
+  }
+
+  // ================================================================
+  // FIN DEL SCRIPT
+  // ================================================================
 </script>
 </body>
 </html>
